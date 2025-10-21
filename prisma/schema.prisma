@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_DEV")
+}
+
+// User
+model User {
+    id              String @id @default(cuid())
+    email           String @unique
+    user_jobs       User_Job[]      // job applications
+    resumes         Resume[]
+    cover_letters   Cover_Letter[]
+
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+}
+
+// Job
+model Job {
+    id          String @id @default(cuid())
+    url         String @unique
+    company     String
+    position    String
+    platform    String
+    user_jobs   User_Job[]
+    // salary, location, ...
+
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+}
+
+//User_Job
+enum Status {
+    PENDING
+    APPLIED
+    INTERVIEW
+    OFFER
+    REJECTED
+}
+
+model User_Job {
+    id              String @id @default(cuid())
+    user_id         String
+    user            User @relation(fields: [user_id], references: [id])
+    job_id          String
+    job             Job @relation(fields: [job_id], references: [id])
+    status          Status
+    resume_id       String
+    resume          Resume @relation(fields: [resume_id], references: [id])
+    cover_letter_id String?
+    cover_letter    Cover_Letter? @relation(fields: [cover_letter_id], references: [id])
+    
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+
+    @@unique([user_id, job_id])
+}
+
+// Resume
+model Resume {
+  id          String @id @default(cuid())
+  file        String @unique // not implemented
+  user_id     String
+  user        User @relation(fields: [user_id], references: [id])
+  user_jobs   User_Job[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Cover_Letter
+model Cover_Letter {
+  id          String @id @default(cuid())
+  file        String @unique // not implemented
+  user_id     String
+  user        User @relation(fields: [user_id], references: [id])
+  user_jobs   User_Job[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
