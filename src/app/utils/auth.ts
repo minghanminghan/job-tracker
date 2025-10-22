@@ -8,8 +8,8 @@ import { redirect } from "next/navigation"
 export const authOptions: NextAuthOptions = {
     providers: [
         GoogleProvider({
-        clientId: process.env.GOOGLE_CLIENT_ID!,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
         }),
     ],
     session: {
@@ -22,13 +22,23 @@ export const authOptions: NextAuthOptions = {
                 await prisma.user.upsert({
                     where: { email: user.email },
                     update: {  }, // pass, maybe update updatedAt
-                    create: { email: user.email },
+                    create: { 
+                        id: user.id,        // use google id instead of prisma uuid
+                        email: user.email,
+                    },
                 })
                 return true
             } else {
                 logger.error({user}, 'missing email for user')
                 return false
             }
+        },
+        async redirect({ url, baseUrl }) {
+            // Redirect to /home after sign in
+            if (url === baseUrl || url.startsWith(baseUrl)) {
+                return `${baseUrl}/home`
+            }
+            return url
         },
         async jwt({ token, user, account, profile }) {
             // First time JWT is created (on sign in)
