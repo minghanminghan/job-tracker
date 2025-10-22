@@ -1,7 +1,7 @@
 import { TableContainer, Table as MUI_Table, TableHead, TableBody, TableRow, TableCell } from "@mui/material"
 
 // pagination?
-export default function Table({keys, values}: {keys: string[], values: Record<string, any>[]}): React.ReactNode {
+export default function Table({keys, values}: {keys: any[], values: Record<string, any>[]}): React.ReactNode {
     /*
     * keys   -> header
     * values -> table elements
@@ -23,7 +23,8 @@ export default function Table({keys, values}: {keys: string[], values: Record<st
                     {values.map((row, index) => (
                         <TableRow key={index}>
                             {keys.map((key) => (
-                                <TableCell key={key}>{row[key]}</TableCell>
+                                // this needs to change
+                                <TableCell key={key}>{String(row[key])}</TableCell>
                             ))}
                         </TableRow>
                     ))}

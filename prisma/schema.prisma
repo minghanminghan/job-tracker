@@ -50,16 +50,16 @@ enum Status {
 }
 
 model User_Job {
-    id              String @id @default(cuid())
-    user_id         String
-    user            User @relation(fields: [user_id], references: [id])
-    job_id          String
-    job             Job @relation(fields: [job_id], references: [id])
-    status          Status
-    resume_id       String
-    resume          Resume @relation(fields: [resume_id], references: [id])
-    cover_letter_id String?
-    cover_letter    Cover_Letter? @relation(fields: [cover_letter_id], references: [id])
+    id                String @id @default(cuid())
+    user_id           String
+    user              User @relation(fields: [user_id], references: [id])
+    job_id            String
+    job               Job @relation(fields: [job_id], references: [id])
+    status            Status
+    resume_name       String
+    resume            Resume @relation(fields: [user_id, resume_name], references: [user_id, name])
+    cover_letter_name String?
+    cover_letter      Cover_Letter? @relation(fields: [user_id, cover_letter_name], references: [user_id, name])
     
     createdAt       DateTime @default(now())
     updatedAt       DateTime @updatedAt
@@ -69,26 +69,28 @@ model User_Job {
 
 // Resume
 model Resume {
-  id          String @id @default(cuid())
-  name        String @unique
-  file        String @unique // not implemented
+  name        String
+  url         String
   user_id     String
   user        User @relation(fields: [user_id], references: [id])
   user_jobs   User_Job[]
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  @@id([user_id, name])
 }
 
 // Cover_Letter
 model Cover_Letter {
-  id          String @id @default(cuid())
-  name        String @unique
-  file        String @unique // not implemented
+  name        String
+  url         String
   user_id     String
   user        User @relation(fields: [user_id], references: [id])
   user_jobs   User_Job[]
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  @@id([user_id, name])
 }

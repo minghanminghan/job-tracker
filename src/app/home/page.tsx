@@ -1,27 +1,31 @@
-import { requireAuth } from "@/app/utils/auth"
-import { prisma } from "@/app/utils/prisma"
-import Table from "../components/Table"
+import { getServerSession } from "next-auth"
+import Link from "next/link"
+import { prisma } from "@/utils/prisma"
+import Table from "../../components/Table"
+import { Button, Modal, Box, Paper, Typography, Dialog } from "@mui/material"
+import { redirect } from "next/navigation"
+import { logger } from "@/utils/logger"
 
-export default async function DashboardPage() {
-  const session = await requireAuth()
-  
-  // const fields = prisma.user_Job.fields
-  // const jobs = await prisma.user_Job.findMany({
-  //   where: { user_id: session.user.id },
-  //   // include: { job: true },
-  // })
-  const fields = ['id', 'Company', 'Position']
-  const jobs = [
-    {id: 0, Company: 'OpenAI', Position: 'SWE'},
-    {id: 1, Company: 'Disney', Position: 'SWE'},
-    {id: 2, Company: 'Google', Position: 'SWE'},
-    {id: 3, Company: 'Anthropic', Position: 'SWE'},
-    {id: 4, Company: 'Amazon', Position: 'SWE'},
-  ]
+export default async function Page() {
+    const session = await getServerSession()
+    if (!session) redirect("/auth/signin")
 
-  return (
-    <>
-      <Table keys={fields} values={jobs}/>
-    </>
-  )
+    const fields = Object.keys(prisma.user_Job.fields)
+    const jobs = await prisma.user_Job.findMany({
+        where: { user_id: session.user.id },
+        include: {
+            job: true,
+            resume: true,
+            cover_letter: true,
+        },
+    })
+    console.log(jobs)
+    
+    return (
+        <div>
+            <Button variant="outlined"><Link href="/add">Add Job</Link></Button>
+            <Button variant="outlined">Add Resume</Button>
+            <Table keys={fields} values={jobs}/>
+        </div>
+    )
 }
