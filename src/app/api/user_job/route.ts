@@ -36,14 +36,14 @@ export async function POST(request: NextRequest) {
     const { status, job, resume, cover_letter } = body
     try {
         const createData: any = {
-        user: { connect: { id: user_id } },
-        status,
-        job: {
-                connectOrCreate: {
-                    where: { url: job.url },
-                    create: { ...job }
-                }
-            },
+            user: { connect: { id: user_id } },
+            status,
+            job: {
+                    connectOrCreate: {
+                        where: { url: job.url },
+                        create: { ...job }
+                    }
+                },
             resume: {
                 connectOrCreate: {
                     where: { user_id_name: { user_id: user_id, name: resume.name }},
