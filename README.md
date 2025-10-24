@@ -1,4 +1,10 @@
 # TODO
-- remove abstract table for more malleability + faster iteration
-    - new table just defined in home/page.tsx
-    - allow for displaying 
+- sort and filter table
+- add tags to User_Job model
+- dashboards
+    - summarize application data / stats
+- data viz
+    - time series view of applications
+    - interview notepad / prep
+- utility for users
+    - export table to csv
