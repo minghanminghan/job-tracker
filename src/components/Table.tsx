@@ -1,17 +1,13 @@
 "use client"
 
-import { 
-  Table as MUI_Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableRow, 
-  Select, 
+import {
+  Select,
   MenuItem,
-  Paper,
-  TableContainer 
+  Button,
 } from '@mui/material'
-import { useState } from 'react'
+import { DataGrid, GridColDef } from '@mui/x-data-grid'
+import DownloadIcon from '@mui/icons-material/Download'
+
 
 export type Label = {
     display_name: string    // display name
@@ -28,48 +24,108 @@ function getNestedValue(obj: any, path: string): any {
 }
 
 
+function exportToCSV(labels: Label[], data: any[], filename: string = 'export.csv') {
+  // Create CSV header from labels
+  const headers = labels.map(label => label.display_name).join(',')
+  
+  // Create CSV rows
+  const rows = data.map(row => {
+    return labels.map(label => {
+      const value = getNestedValue(row, label.raw_name)
+      // Escape commas and quotes in values
+      const escapedValue = String(value || '')
+        .replace(/"/g, '""')
+        .replace(/,/g, ' ')
+      return `"${escapedValue}"`
+    }).join(',')
+  })
+  
+  // Combine header and rows
+  const csv = [headers, ...rows].join('\n')
+  
+  // Create download link
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  const url = URL.createObjectURL(blob)
+  link.setAttribute('href', url)
+  link.setAttribute('download', filename)
+  link.style.visibility = 'hidden'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
+
 export default function Table({labels, initialData, onChange}: { labels: Label[], initialData: Record<any, any>[], onChange: Function }) {
-    // const [data, setData] = useState(initialData)
     function handleChange(job_id: string, new_status: string) {
         onChange(job_id, new_status)
     }
 
+    // Convert labels to DataGrid columns
+    const columns: GridColDef[] = labels.map(label => ({
+        field: label.raw_name,
+        headerName: label.display_name,
+        flex: 1,
+        minWidth: 150,
+        // Handle nested values (e.g., "job.company")
+        valueGetter: (value, row) => getNestedValue(row, label.raw_name),
+        // Custom cell renderer
+        renderCell: (params) => {
+            const value = params.value
+
+            // Editable field with Select dropdown
+            if (!label.static && label.values) {
+                return (
+                    <Select
+                        value={value || ''}
+                        onChange={(e) => handleChange(params.row.id, e.target.value)}
+                        size="small"
+                        autoWidth
+                        sx={{ minWidth: 120 }}
+                    >
+                        {label.values.map((v) => (
+                            <MenuItem key={v} value={v}>{v}</MenuItem>
+                        ))}
+                    </Select>
+                )
+            }
+
+            // Static field - plain text
+            return value ? String(value) : ''
+        },
+    }))
+
     return (
-        <TableContainer component={Paper}>
-        <MUI_Table>
-            <TableHead>
-            <TableRow>
-                {labels.map((label) => (
-                    <TableCell sx={{ fontWeight: 'bold' }} key={label.raw_name}>{label.display_name}</TableCell>
-                ))}
-            </TableRow>
-            </TableHead>
-            <TableBody>
-                {initialData.map((row, index) => (
-                    <TableRow key={index}>
-                        {labels.map((label) => {
-                            const value = getNestedValue(row, label.raw_name)
-                            if (!label.static) return (
-                                <TableCell key={label.raw_name}>
-                                    <Select
-                                        autoWidth
-                                        value={value}
-                                        onChange={(e) => {handleChange(row.id, e.target.value)}}
-                                    >
-                                        {label.values!.map((v) => <MenuItem value={v}>{v}</MenuItem>)}
-                                    </Select>
-                                </TableCell>
-                            )
-                            return (
-                                <TableCell key={label.raw_name}>
-                                    {value ? String(value) : ''}
-                                </TableCell>
-                            )
-                        })}
-                    </TableRow>
-                ))}
-            </TableBody>
-        </MUI_Table>
-        </TableContainer>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <Button
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                onClick={() => exportToCSV(labels, initialData, 'job-applications.csv')}
+                sx={{ alignSelf: 'flex-end', mb: 2 }}
+            >
+                Export to CSV
+            </Button>
+            <DataGrid
+                rows={initialData}
+                columns={columns}
+                getRowId={(row) => row.id}
+                pageSizeOptions={[10, 25, 50, 100]}
+                initialState={{
+                    pagination: { paginationModel: { pageSize: 25 } },
+                }}
+                disableRowSelectionOnClick
+                getRowHeight={() => 'auto'}
+                sx={{
+                    '& .MuiDataGrid-cell': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        whiteSpace: 'normal',
+                        wordWrap: 'break-word',
+                        lineHeight: '1.5',
+                        py: 1,
+                    }
+                }}
+            />
+        </div>
     )
 }

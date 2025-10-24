@@ -49,6 +49,11 @@ export default async function Page() {
 			raw_name: "createdAt",
 			static: true,
 		},
+        {
+            display_name: "Updated",
+            raw_name: "updatedAt",
+            static: true,
+        },
     ]
 
     const jobs = await prisma.user_Job.findMany({
@@ -61,7 +66,7 @@ export default async function Page() {
     })
     
     return (
-        <Box>
+        <Box padding={5}>
 			<Table labels={labels} initialData={jobs} onChange={updateUser_Job_Status} />
         </Box>
     )
