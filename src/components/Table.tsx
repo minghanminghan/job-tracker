@@ -4,17 +4,13 @@ import {
   Select,
   MenuItem,
   Button,
+  Box,
+  Typography,
+  Link
 } from '@mui/material'
 import { DataGrid, GridColDef } from '@mui/x-data-grid'
 import DownloadIcon from '@mui/icons-material/Download'
-
-
-export type Label = {
-    display_name: string    // display name
-    raw_name: string        // value for fetching
-    static: boolean         // is this field editable
-    values?: string[]       // exists only if static is false
-}
+import { TableLabel } from '@/types/TableLabel'
 
 
 // Helper function to get nested property value using dot notation
@@ -24,7 +20,7 @@ function getNestedValue(obj: any, path: string): any {
 }
 
 
-function exportToCSV(labels: Label[], data: any[], filename: string = 'export.csv') {
+function exportToCSV(labels: TableLabel[], data: any[], filename: string = 'export.csv') {
   // Create CSV header from labels
   const headers = labels.map(label => label.display_name).join(',')
   
@@ -56,9 +52,9 @@ function exportToCSV(labels: Label[], data: any[], filename: string = 'export.cs
 }
 
 
-export default function Table({labels, initialData, onChange}: { labels: Label[], initialData: Record<any, any>[], onChange: Function }) {
+export default function Table({title, labels, data, onChange}: { title: string, labels: TableLabel[], data: Record<any, any>[], onChange?: Function }) {
     function handleChange(job_id: string, new_status: string) {
-        onChange(job_id, new_status)
+        onChange!(job_id, new_status)
     }
 
     // Convert labels to DataGrid columns
@@ -67,46 +63,50 @@ export default function Table({labels, initialData, onChange}: { labels: Label[]
         headerName: label.display_name,
         flex: 1,
         minWidth: 150,
-        // Handle nested values (e.g., "job.company")
         valueGetter: (value, row) => getNestedValue(row, label.raw_name),
-        // Custom cell renderer
         renderCell: (params) => {
             const value = params.value
-
-            // Editable field with Select dropdown
-            if (!label.static && label.values) {
-                return (
-                    <Select
-                        value={value || ''}
+            switch (label.renderType) {
+                case 'select':
+                    return (<Select
+                        value={value}
                         onChange={(e) => handleChange(params.row.id, e.target.value)}
                         size="small"
                         autoWidth
                         sx={{ minWidth: 120 }}
                     >
-                        {label.values.map((v) => (
+                        {label.values?.map((v) => (
                             <MenuItem key={v} value={v}>{v}</MenuItem>
                         ))}
-                    </Select>
-                )
+                    </Select>)
+                case 'link':
+                    return (<Link href={value}>{value}</Link>)
+                default:
+                    return value ? String(value) : ''
             }
-
-            // Static field - plain text
-            return value ? String(value) : ''
         },
     }))
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <Button
-                variant="outlined"
-                startIcon={<DownloadIcon />}
-                onClick={() => exportToCSV(labels, initialData, 'job-applications.csv')}
-                sx={{ alignSelf: 'flex-end', mb: 2 }}
+        <Box padding={5} sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Box
+                width='100%'
+                alignItems='center'
+                justifyContent='space-between'
+                sx={{ display: 'flex', flexDirection: 'row' }}
             >
-                Export to CSV
-            </Button>
+                <Typography fontWeight='bold'>{title}</Typography>
+                <Button
+                    variant="outlined"
+                    startIcon={<DownloadIcon />}
+                    onClick={() => exportToCSV(labels, data, 'job-applications.csv')}
+                    sx={{ alignSelf: 'flex-end', mb: 2 }}
+                >
+                    Export to CSV
+                </Button>
+            </Box>
             <DataGrid
-                rows={initialData}
+                rows={data}
                 columns={columns}
                 getRowId={(row) => row.id}
                 pageSizeOptions={[10, 25, 50, 100]}
@@ -126,6 +126,6 @@ export default function Table({labels, initialData, onChange}: { labels: Label[]
                     }
                 }}
             />
-        </div>
+        </Box>
     )
 }

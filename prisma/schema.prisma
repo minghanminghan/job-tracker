@@ -69,6 +69,7 @@ model User_Job {
 
 // Resume
 model Resume {
+  id          String @unique @default(cuid())
   name        String
   url         String
   user_id     String
@@ -83,6 +84,7 @@ model Resume {
 
 // Cover_Letter
 model Cover_Letter {
+  id          String @unique @default(cuid())
   name        String
   url         String
   user_id     String

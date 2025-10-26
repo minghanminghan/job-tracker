@@ -16,7 +16,6 @@ export default async function Layout({
 
   return (
     <div>
-      <Button variant="outlined"><Link href="/home">Home</Link></Button>
       {children}
     </div>
   )

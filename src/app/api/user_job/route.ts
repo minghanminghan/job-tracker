@@ -33,29 +33,40 @@ export async function POST(request: NextRequest) {
         logger.error("missing fields")
         return new NextResponse("missing fields", { status: 400 })
     }
-    const { status, job, resume, cover_letter } = body
+    const { status, job, resume, coverLetter } = body
     try {
         const createData: any = {
             user: { connect: { id: user_id } },
             status,
             job: {
-                    connectOrCreate: {
-                        where: { url: job.url },
-                        create: { ...job }
-                    }
-                },
-            resume: {
                 connectOrCreate: {
-                    where: { user_id_name: { user_id: user_id, name: resume.name }},
-                    create: { ...resume, user_id }
+                    where: { url: job.url },
+                    create: { ...job }
                 }
             },
         }
-        if (cover_letter) {
-            createData.cover_letter = {
+        if (resume.exists) {
+            createData.resume = {
+                connect: { user_id_name: { user_id: user_id, name: resume.name }}
+            }
+        } else {
+            createData.resume = {
+                create: {
+                    name: resume.name,
+                    url: resume.url,
+                    user_id,
+                }
+            }
+        }
+        if (coverLetter.exists || coverLetter.uploaded) {
+            createData.coverLetter = {
                 connectOrCreate: {
-                where: { user_id_name: { user_id, name: cover_letter.name } },
-                create: { ...cover_letter, user_id }
+                    where: { user_id_name: { user_id, name: coverLetter.name } },
+                    create: {
+                        name: coverLetter.name,
+                        url: coverLetter.url,
+                        user_id,
+                    }
                 }
             }
         }
