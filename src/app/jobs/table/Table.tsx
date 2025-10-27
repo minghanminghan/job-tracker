@@ -59,7 +59,7 @@ function exportToCSV(labels: TableLabel[], data: any[], filename: string = 'expo
 }
 
 
-export default function Table({title, labels, data, onStatusChange}: { title: string, labels: TableLabel[], data: Record<any, any>[], onStatusChange: Function }) {
+export default function Table({title, labels, data, onStatusChange, resumes, coverLetters}: { title: string, labels: TableLabel[], data: Record<any, any>[], onStatusChange: Function, resumes: any[], coverLetters: any[] }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [showEditDrawer, setShowEditDrawer] = useState(false)
     const [currentRow, setCurrentRow] = useState<Record<string, any> | null>(null)
@@ -71,11 +71,9 @@ export default function Table({title, labels, data, onStatusChange}: { title: st
 
     function toggleRowEdit(row?: Record<string, any>) {
         if (row) {
-            console.log('true')
             setCurrentRow(row)
             setShowEditDrawer(true)
         } else {
-            console.log('false')
             setCurrentRow(null)
             setShowEditDrawer(false)
         }
@@ -189,7 +187,8 @@ export default function Table({title, labels, data, onStatusChange}: { title: st
                     },
                 }}
             />
-            <EditJobDrawer row={currentRow} open={showEditDrawer} onClose={() => toggleRowEdit()} />
+            <EditJobDrawer existingResumes={resumes} existingCoverLetters={coverLetters}
+            row={currentRow} open={showEditDrawer} onClose={() => toggleRowEdit()} />
             <DeleteJobPopover open={showDeleteModal} anchorEl={deleteAnchor} job={currentRow!} onClose={() => toggleRowDelete()} />
         </Box>
     )

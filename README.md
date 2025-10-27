@@ -7,3 +7,4 @@
 - data viz
     - time series view of applications
     - interview notepad / prep
+- mobile-friendly UI

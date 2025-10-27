@@ -4,12 +4,14 @@ import { redirect } from "next/navigation"
 import Table from "@/app/jobs/table/Table"
 import { TableLabel } from "@/types/TableLabel"
 import { Box } from "@mui/material"
-import { updateUser_Job_Status } from "@/app/actions/updateUser_Job"
+import { updateUser_Job_Status } from "@/app/actions/user_JobActions"
+import { getResumes, getCoverLetters } from "@/app/actions/getEntries"
 
 
 export default async function Page() {
     const session = await getServerSession()
     if (!session) redirect("/auth/signin")
+	const user_id = session.user.id
 
     const labels: TableLabel[] = [
 		{
@@ -58,10 +60,20 @@ export default async function Page() {
             cover_letter: true,
         },
     })
+
+	const resumes = await getResumes(user_id)
+	const coverLetters = await getCoverLetters(user_id)
     
     return (
         <Box>
-			<Table title="Jobs" labels={labels} data={jobs} onStatusChange={updateUser_Job_Status} />
+			<Table
+				title="Jobs"
+				labels={labels}
+				data={jobs}
+				resumes={resumes}
+				coverLetters={coverLetters}
+				onStatusChange={updateUser_Job_Status}
+			/>
         </Box>
     )
 }

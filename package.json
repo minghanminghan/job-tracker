@@ -19,6 +19,7 @@
     "@mui/x-data-grid": "^8.15.0",
     "@types/cal-heatmap": "^3.5.39",
     "cal-heatmap": "^4.2.4",
+    "metascraper": "^5.49.5",
     "next": "15.5.6",
     "next-auth": "^4.24.11",
     "pino": "^10.1.0",

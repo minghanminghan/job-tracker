@@ -1,7 +1,7 @@
 "use client"
 
 import { Box, Button, Popover, Typography } from "@mui/material"
-import { deleteUser_Job } from "@/app/actions/updateUser_Job"
+import { deleteUser_Job } from "@/app/actions/user_JobActions"
 
 
 export default function DeleteJobPopover({open, onClose, anchorEl, job}: {open: boolean, onClose: Function, anchorEl: HTMLElement, job: Record<string, any>}) {
@@ -28,7 +28,7 @@ export default function DeleteJobPopover({open, onClose, anchorEl, job}: {open: 
                 maxWidth: 300
             }}>
                 <Typography>Confirm Delete?</Typography>
-                <Button variant='outlined' onClick={() => onConfirm()}>Confirm</Button>
+                <Button variant='contained' onClick={() => onConfirm()}>Confirm</Button>
                 <Button variant='outlined' onClick={() => onClose()}>Cancel</Button>
             </Box>
         </Popover>
