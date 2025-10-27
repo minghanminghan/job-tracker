@@ -6,11 +6,18 @@ import {
   Button,
   Box,
   Typography,
-  Link
+  Link,
+  IconButton,
+  Drawer
 } from '@mui/material'
 import { DataGrid, GridColDef } from '@mui/x-data-grid'
-import DownloadIcon from '@mui/icons-material/Download'
 import { TableLabel } from '@/types/TableLabel'
+import DownloadIcon from '@mui/icons-material/Download'
+import EditIcon from '@mui/icons-material/Edit'
+import DeleteIcon from '@mui/icons-material/Delete'
+import { useState } from 'react'
+import EditJobDrawer from './EditJobDrawer'
+import DeleteJobPopover from './DeleteJobPopover'
 
 
 // Helper function to get nested property value using dot notation
@@ -52,9 +59,38 @@ function exportToCSV(labels: TableLabel[], data: any[], filename: string = 'expo
 }
 
 
-export default function Table({title, labels, data, onChange}: { title: string, labels: TableLabel[], data: Record<any, any>[], onChange?: Function }) {
-    function handleChange(job_id: string, new_status: string) {
-        onChange!(job_id, new_status)
+export default function Table({title, labels, data, onStatusChange}: { title: string, labels: TableLabel[], data: Record<any, any>[], onStatusChange: Function }) {
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [showEditDrawer, setShowEditDrawer] = useState(false)
+    const [currentRow, setCurrentRow] = useState<Record<string, any> | null>(null)
+    const [deleteAnchor, setDeleteAnchor] = useState<any|null>(null)
+
+    function handleChange(row: any, new_status: string) {
+        onStatusChange(row.user_id, row.job_id, new_status)
+    }
+
+    function toggleRowEdit(row?: Record<string, any>) {
+        if (row) {
+            console.log('true')
+            setCurrentRow(row)
+            setShowEditDrawer(true)
+        } else {
+            console.log('false')
+            setCurrentRow(null)
+            setShowEditDrawer(false)
+        }
+    }
+
+    function toggleRowDelete(e?: React.MouseEvent<HTMLElement>, row?: Record<string, any>) {
+        e?.stopPropagation()
+        if (e && row) {
+            setDeleteAnchor(e.currentTarget)
+            setCurrentRow(row)
+            setShowDeleteModal(true)
+        } else {
+            setCurrentRow(null)
+            setShowDeleteModal(false)
+        }
     }
 
     // Convert labels to DataGrid columns
@@ -70,7 +106,7 @@ export default function Table({title, labels, data, onChange}: { title: string, 
                 case 'select':
                     return (<Select
                         value={value}
-                        onChange={(e) => handleChange(params.row.id, e.target.value)}
+                        onChange={(e) => handleChange(params.row, e.target.value)}
                         size="small"
                         autoWidth
                         sx={{ minWidth: 120 }}
@@ -107,7 +143,31 @@ export default function Table({title, labels, data, onChange}: { title: string, 
             </Box>
             <DataGrid
                 rows={data}
-                columns={columns}
+                columns={[
+                    {
+                        field: 'actions',
+                        headerName: 'Actions',
+                        width: 100,
+                        sortable: false,
+                        renderCell: (params) => (
+                            <Box>
+                            <IconButton onClick={(e) => {
+                                e.stopPropagation() // Prevent row click
+                                toggleRowEdit(params.row)
+                            }}>
+                                <EditIcon />
+                            </IconButton>
+                            <IconButton onClick={(e) => {
+                                e.stopPropagation()
+                                toggleRowDelete(e, params.row)
+                            }}>
+                                <DeleteIcon />
+                            </IconButton>
+                            </Box>
+                        )
+                    },
+                    ...columns
+                ]}
                 getRowId={(row) => row.id}
                 pageSizeOptions={[10, 25, 50, 100]}
                 initialState={{
@@ -123,9 +183,14 @@ export default function Table({title, labels, data, onChange}: { title: string, 
                         wordWrap: 'break-word',
                         lineHeight: '1.5',
                         py: 1,
-                    }
+                    },
+                    '& .MuiDataGrid-row': {
+                        cursor: 'pointer',
+                    },
                 }}
             />
+            <EditJobDrawer row={currentRow} open={showEditDrawer} onClose={() => toggleRowEdit()} />
+            <DeleteJobPopover open={showDeleteModal} anchorEl={deleteAnchor} job={currentRow!} onClose={() => toggleRowDelete()} />
         </Box>
     )
 }

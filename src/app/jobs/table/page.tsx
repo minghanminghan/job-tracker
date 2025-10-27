@@ -1,12 +1,10 @@
 import { getServerSession } from "next-auth"
-import Link from "next/link"
 import { prisma } from "@/utils/prisma"
 import { redirect } from "next/navigation"
-import { logger } from "@/utils/logger"
-import Table from "@/components/Table"
+import Table from "@/app/jobs/table/Table"
 import { TableLabel } from "@/types/TableLabel"
 import { Box } from "@mui/material"
-import updateUser_Job_Status from "@/app/actions/updateUser_Job"
+import { updateUser_Job_Status } from "@/app/actions/updateUser_Job"
 
 
 export default async function Page() {
@@ -50,11 +48,6 @@ export default async function Page() {
 			raw_name: "createdAt",
 			renderType: "text",
 		},
-        {
-            display_name: "Updated",
-            raw_name: "updatedAt",
-            renderType: "text",
-        },
     ]
 
     const jobs = await prisma.user_Job.findMany({
@@ -68,7 +61,7 @@ export default async function Page() {
     
     return (
         <Box>
-			<Table title="Jobs" labels={labels} data={jobs} onChange={updateUser_Job_Status} />
+			<Table title="Jobs" labels={labels} data={jobs} onStatusChange={updateUser_Job_Status} />
         </Box>
     )
 }

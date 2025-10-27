@@ -17,12 +17,15 @@
     "@mui/icons-material": "^7.3.4",
     "@mui/material": "^7.3.4",
     "@mui/x-data-grid": "^8.15.0",
+    "@types/cal-heatmap": "^3.5.39",
+    "cal-heatmap": "^4.2.4",
     "next": "15.5.6",
     "next-auth": "^4.24.11",
     "pino": "^10.1.0",
     "pino-pretty": "^13.1.2",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "recharts": "^3.3.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

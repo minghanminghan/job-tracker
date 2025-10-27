@@ -1,8 +1,7 @@
-import Table from "@/components/Table"
+import Table from "./Table"
 import { TableLabel } from "@/types/TableLabel"
 import { getCurrentUser } from "@/utils/auth"
 import { prisma } from "@/utils/prisma"
-import { Link } from "@mui/material"
 
 export default async function Page() {
     const user = await getCurrentUser()

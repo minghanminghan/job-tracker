@@ -13,12 +13,8 @@ import {
   Paper,
   Alert,
   CircularProgress,
-  RadioGroup,
-  Radio,
-  FormControlLabel,
 } from "@mui/material"
 import { Status } from "@/generated/prisma"
-import { getResumes, getCoverLetters } from "@/app/actions/getEntry"
 import UploadOrSelectFile from "./UploadOrSelectFile"
 
 export default function AddJobForm({user_id, existingResumes, existingCoverLetters }: {user_id: string, existingResumes: Record<string, any>[], existingCoverLetters: Record<string, any>[]}) {
@@ -71,8 +67,6 @@ export default function AddJobForm({user_id, existingResumes, existingCoverLette
 
   // Form validation
   const validateForm = (): string | null => {
-    console.log("file", resumeFile)
-    console.log("entry", resumeEntry)
     if (!formData.url.trim()) return "Job URL is required"
     if (!formData.company.trim()) return "Company name is required"
     if (!formData.position.trim()) return "Position is required"
@@ -242,7 +236,7 @@ export default function AddJobForm({user_id, existingResumes, existingCoverLette
                 handleInputChange("status", e.target.value as Status)
               }
             >
-              <MenuItem value="PENDING">Pending</MenuItem>
+              <MenuItem value="PENDING">Pending (not applied yet)</MenuItem>
               <MenuItem value="APPLIED">Applied</MenuItem>
               <MenuItem value="INTERVIEW">Interview</MenuItem>
               <MenuItem value="OFFER">Offer</MenuItem>

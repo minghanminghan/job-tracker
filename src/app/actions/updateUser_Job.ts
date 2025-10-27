@@ -4,14 +4,25 @@ import { prisma } from "@/utils/prisma"
 import { revalidatePath } from "next/cache"
 import { $Enums } from "@/generated/prisma"
 
-export default async function updateUser_Job_Status(user_job_id: string, new_status: $Enums.Status) {
-    // new_job must contain id and updated fields
-    // console.log(new_job)
+export async function updateUser_Job_Status(user_id: string, job_id: string, new_status: $Enums.Status) {
     await prisma.user_Job.update({
-        where: { id: user_job_id },
+        where: { user_id_job_id: {
+            job_id,
+            user_id
+        }},
         data: {
             status: new_status
         }
     })
-    revalidatePath("/home")
+    revalidatePath("/jobs/table")
+}
+
+export async function deleteUser_Job(user_id: string, job_id: string) {
+    await prisma.user_Job.delete({
+        where: { user_id_job_id: {
+            job_id,
+            user_id
+        }}
+    })
+    revalidatePath("/jobs/table")
 }

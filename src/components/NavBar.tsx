@@ -2,37 +2,30 @@
 
 import { Box, Link as MuiLink, Menu, MenuItem } from '@mui/material'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 
 export default function NavBar() {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-    const [closeTimeout, setCloseTimeout] = useState<NodeJS.Timeout | null>(null)
+    const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+    const clearCloseTimeout = () => {
+        if (closeTimeoutRef.current) {
+            clearTimeout(closeTimeoutRef.current)
+            closeTimeoutRef.current = null
+        }
+    }
 
     const handleMouseEnter = (event: React.MouseEvent<HTMLElement>) => {
-        if (closeTimeout) {
-            clearTimeout(closeTimeout)
-            setCloseTimeout(null)
-        }
+        clearCloseTimeout()
         setAnchorEl(event.currentTarget)
     }
 
     const handleMouseLeave = () => {
-        const timeout = setTimeout(() => {
+        clearCloseTimeout()
+        closeTimeoutRef.current = setTimeout(() => {
             setAnchorEl(null)
-        }, 150)
-        setCloseTimeout(timeout)
-    }
-
-    const handleMenuEnter = () => {
-        if (closeTimeout) {
-            clearTimeout(closeTimeout)
-            setCloseTimeout(null)
-        }
-    }
-
-    const handleClose = () => {
-        setAnchorEl(null)
+        }, 200)
     }
 
     return (
@@ -44,42 +37,35 @@ export default function NavBar() {
         }}
         >
             <MuiLink component={Link} href="/home" underline="hover">Home</MuiLink>
-
+            <MuiLink component={Link} href="/add" underline="hover">Add Job</MuiLink>
             <Box
-                sx={{ position: 'relative' }}
+                onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
+                sx={{ position: 'relative', display: 'inline-block' }}
             >
-                <Box
-                    onMouseEnter={handleMouseEnter}
-                    sx={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                    }}
-                >
+                <Box sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                }}>
                     <MuiLink
                         component={Link}
                         href="/job"
                         underline="hover"
                         sx={{ display: 'flex', alignItems: 'center' }}
                     >
-                        Jobs
+                        View Jobs
                         <ArrowDropDownIcon sx={{ fontSize: 20 }} />
                     </MuiLink>
                 </Box>
-
                 <Menu
                     anchorEl={anchorEl}
                     open={Boolean(anchorEl)}
-                    onClose={handleMouseLeave}
+                    onClose={() => setAnchorEl(null)}
+                    onClick={() => setAnchorEl(null)}
                     anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
                     transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-                    slotProps={{
-                        paper: {
-                            onMouseEnter: handleMenuEnter,
-                            onMouseLeave: handleMouseLeave,
-                            sx: { mt: 0.5 }
-                        }
-                    }}
+                    disablePortal
+                    disableAutoFocus
                     disableRestoreFocus
                 >
                     <MenuItem component={Link} href="/jobs/table">
@@ -88,14 +74,9 @@ export default function NavBar() {
                     <MenuItem component={Link} href="/jobs/dashboard">
                         Dashboard
                     </MenuItem>
-                    <MenuItem component={Link} href="/jobs/time-series">
-                        Time Series
-                    </MenuItem>
                 </Menu>
             </Box>
-
-            <MuiLink component={Link} href="/add" underline="hover">Add Job</MuiLink>
-            <MuiLink component={Link} href="/documents" underline="hover">Documents</MuiLink>
+            <MuiLink component={Link} href="/documents" underline="hover">View Documents</MuiLink>
         </Box>
     )
 }
