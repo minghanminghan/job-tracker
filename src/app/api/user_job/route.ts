@@ -45,27 +45,40 @@ export async function POST(request: NextRequest) {
                 }
             },
         }
-        if (resume.exists) {
+        if (resume.isExisting) {
+            // Connect to existing resume
             createData.resume = {
                 connect: { user_id_name: { user_id: user_id, name: resume.name }}
             }
         } else {
+            // Create new resume
             createData.resume = {
-                create: {
-                    name: resume.name,
-                    url: resume.url,
-                    user_id,
+                connectOrCreate: {
+                    where: { user_id_name: { user_id, name: resume.name } },
+                    create: {
+                        name: resume.name,
+                        url: resume.url,
+                        user_id,
+                    }
                 }
             }
         }
-        if (coverLetter.exists || coverLetter.uploaded) {
-            createData.coverLetter = {
-                connectOrCreate: {
-                    where: { user_id_name: { user_id, name: coverLetter.name } },
-                    create: {
-                        name: coverLetter.name,
-                        url: coverLetter.url,
-                        user_id,
+        if (coverLetter) {
+            if (coverLetter.isExisting) {
+                // Connect to existing cover letter
+                createData.cover_letter = {
+                    connect: { user_id_name: { user_id, name: coverLetter.name } }
+                }
+            } else {
+                // Create new cover letter
+                createData.cover_letter = {
+                    connectOrCreate: {
+                        where: { user_id_name: { user_id, name: coverLetter.name } },
+                        create: {
+                            name: coverLetter.name,
+                            url: coverLetter.url,
+                            user_id,
+                        }
                     }
                 }
             }

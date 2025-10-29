@@ -16,6 +16,7 @@ export default function UploadOrSelectFile({
 }) {
   const [isUpload, setIsUpload] = useState(existingFiles.length === 0)
   const [selectedId, setSelectedId] = useState<string>(defaultFile?.id || "")
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
 
   const label = isResume ? "Resume" : "Cover Letter"
 
@@ -28,12 +29,13 @@ export default function UploadOrSelectFile({
 
   function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] || null
+    setUploadedFile(file)
     handleChange(file, null)
   }
 
-  // Derive selected name from ID
+  // Derive selected name from ID or uploaded file
   const selectedName = isUpload
-    ? null
+    ? uploadedFile?.name
     : existingFiles.find(f => f.id === selectedId)?.name
 
   return(

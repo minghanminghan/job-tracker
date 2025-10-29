@@ -16,17 +16,20 @@ import UploadOrSelectFile from "@/app/add/UploadOrSelectFile"
 
 export type JobFormData = {
   job: {
-    url: string
-    company: string
-    position: string
-    platform: string
+    url:          string
+    company:      string
+    position:     string
+    platform:     string
+    location:     string[]
+    salary_min?:  number
+    salary_max?:  number
   }
   status: Status
   resume: any
   coverLetter: any
 }
 
-const JOB_BOARDS = ["Ashby", "Greenhouse", "Handshake", "Indeed", "Lever", "LinkedIn", "Workday"]
+const JOB_BOARDS = ["", "Ashby", "Greenhouse", "Handshake", "Indeed", "Lever", "LinkedIn", "Workday"]
 
 export default function JobForm({
   initialData,
@@ -48,14 +51,21 @@ export default function JobForm({
     company: initialData?.job?.company || "",
     position: initialData?.job?.position || "",
     platform: initialData?.job?.platform || "",
+    location: initialData?.job?.location || [],
+    salary_min: initialData?.job?.salary_min || 0,
+    salary_max: initialData?.job?.salary_max || 0,
     status: (initialData?.status as Status) || "PENDING",
     resume: initialData?.resume,
     coverLetter: initialData?.coverLetter
   })
 
   const [showOtherPlatform, setShowOtherPlatform] = useState(
-    initialData?.job?.platform === "Other" ||
-    (initialData?.job?.platform && !JOB_BOARDS.includes(initialData.job.platform))
+    !JOB_BOARDS.includes(initialData?.job?.platform || "")
+  )
+
+  // Separate state for location input to allow typing commas and spaces
+  const [locationInput, setLocationInput] = useState(
+    initialData?.job?.location?.join(', ') || ""
   )
 
   const [resumeFile, setResumeFile] = useState<File | null>(null)
@@ -67,8 +77,16 @@ export default function JobForm({
     initialData?.cover_letter || initialData?.cover_letter_name ? { name: initialData.cover_letter_name, id: initialData.cover_letter?.id } : null
   )
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | number | string[]) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleLocationChange = (value: string) => {
+    // Update the input field immediately
+    setLocationInput(value)
+    // Split by comma and trim whitespace for the form data
+    const locations = value.split(',').map(loc => loc.trim()).filter(loc => loc !== '')
+    setFormData((prev) => ({ ...prev, location: locations }))
   }
 
   const handleResumeChange = (newResume: File | null, existingResume: Record<string, any> | null) => {
@@ -96,6 +114,9 @@ export default function JobForm({
     if (!formData.company.trim()) return "Company name is required"
     if (!formData.position.trim()) return "Position is required"
     if (!formData.platform.trim()) return "Platform is required"
+    if (formData.salary_min < 0) return "Minimum salary cannot be negative"
+    if (formData.salary_max < 0) return "Maximum salary cannot be negative"
+    if (formData.salary_min > formData.salary_max) return "Minimum salary cannot be greater than maximum salary"
     if (!resumeFile && !resumeEntry) return "Resume is required"
     return null
   }
@@ -105,6 +126,7 @@ export default function JobForm({
 
     const validationError = validateForm()
     if (validationError) {
+      // TODO: change this to show in MUI and not alert
       alert(validationError)
       return
     }
@@ -115,6 +137,9 @@ export default function JobForm({
         company: formData.company,
         position: formData.position,
         platform: formData.platform,
+        location: formData.location,
+        salary_min: formData.salary_min,
+        salary_max: formData.salary_max,
       },
       status: formData.status,
       resume: resumeEntry
@@ -125,9 +150,8 @@ export default function JobForm({
             isExisting: true
           }
         : {
-            fileName: resumeFile!.name,
-            fileSize: resumeFile!.size,
-            fileType: resumeFile!.type,
+            name: resumeFile!.name,
+            url: `uploads/resumes/${resumeFile!.name}`, // TODO: Actually upload file
             isExisting: false
           },
       coverLetter: coverLetterEntry
@@ -139,9 +163,8 @@ export default function JobForm({
           }
         : coverLetterFile
         ? {
-            fileName: coverLetterFile.name,
-            fileSize: coverLetterFile.size,
-            fileType: coverLetterFile.type,
+            name: coverLetterFile.name,
+            url: `uploads/cover-letters/${coverLetterFile.name}`, // TODO: Actually upload file
             isExisting: false
           }
         : null,
@@ -152,47 +175,74 @@ export default function JobForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <TextField
-        fullWidth
+      <TextField fullWidth required margin="normal"
         label="Job URL"
         value={formData.url}
         onChange={(e) => handleInputChange("url", e.target.value)}
-        margin="normal"
-        required
-        placeholder="https://company.com/careers/job-id"
       />
 
-      <TextField
-        fullWidth
+      <TextField fullWidth required margin="normal"
         label="Company"
         value={formData.company}
         onChange={(e) => handleInputChange("company", e.target.value)}
-        margin="normal"
-        required
-        placeholder="Google"
       />
 
-      <TextField
-        fullWidth
+      <TextField fullWidth required margin="normal"
         label="Position"
         value={formData.position}
         onChange={(e) => handleInputChange("position", e.target.value)}
-        margin="normal"
-        required
-        placeholder="Software Engineer"
       />
+
+      <TextField fullWidth margin="normal"
+        label="Location(s)"
+        value={locationInput}
+        onChange={(e) => handleLocationChange(e.target.value)}
+        helperText="Enter comma separated values"
+      />
+
+      <Box sx={{ display: 'flex', gap: 2 }}>
+        <TextField fullWidth margin="normal"
+          label="Minimum Salary"
+          type="number"
+          value={formData.salary_min || ''}
+          onChange={(e) => handleInputChange("salary_min", parseInt(e.target.value) || 0)}
+          slotProps={{
+            input: {
+              startAdornment: <span style={{ marginRight: 4 }}>$</span>,
+            }
+          }}
+        />
+        <TextField fullWidth margin="normal"
+          label="Maximum Salary"
+          type="number"
+          value={formData.salary_max || ''}
+          onChange={(e) => handleInputChange("salary_max", parseInt(e.target.value) || 0)}
+          slotProps={{
+            input: {
+              startAdornment: <span style={{ marginRight: 4 }}>$</span>,
+            }
+          }}
+        />
+      </Box>
 
       <FormControl fullWidth margin="normal" required>
         <InputLabel>Platform</InputLabel>
         <Select
+          defaultValue=" "
           value={JOB_BOARDS.includes(formData.platform) ? formData.platform : "Other"}
           label="Platform"
           onChange={(e) => {
             const value = e.target.value
-            handleInputChange("platform", value)
-            setShowOtherPlatform(JOB_BOARDS.includes(value))
+            if (value === "Other") {
+              setShowOtherPlatform(true)
+              handleInputChange("platform", "")
+            } else {
+              setShowOtherPlatform(false)
+              handleInputChange("platform", value)
+            }
           }}
         >
+          <MenuItem value={""}>&nbsp;</MenuItem>
           <MenuItem value="Ashby">Ashby</MenuItem>
           <MenuItem value="Greenhouse">Greenhouse</MenuItem>
           <MenuItem value="Handshake">Handshake</MenuItem>
@@ -205,13 +255,10 @@ export default function JobForm({
       </FormControl>
 
       {showOtherPlatform && (
-        <TextField
-          fullWidth
+        <TextField fullWidth required margin="normal"
           label="Specify Platform"
           value={formData.platform}
           onChange={(e) => handleInputChange("platform", e.target.value)}
-          margin="normal"
-          required
           placeholder="Enter platform name"
         />
       )}

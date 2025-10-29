@@ -32,9 +32,11 @@ model Job {
     url         String @unique
     company     String
     position    String
+    location    String[]
+    salary_min  Int?
+    salary_max  Int?
     platform    String
     user_jobs   User_Job[]
-    // salary, location, ...
 
     createdAt       DateTime @default(now())
     updatedAt       DateTime @updatedAt
@@ -61,6 +63,12 @@ model User_Job {
     cover_letter_name String?
     cover_letter      Cover_Letter? @relation(fields: [user_id, cover_letter_name], references: [user_id, name])
     
+    pendingDate       DateTime?
+    appliedDate       DateTime?
+    interviewDate     DateTime?
+    rejectedDate      DateTime?
+    offerDate         DateTime?
+
     createdAt       DateTime @default(now())
     updatedAt       DateTime @updatedAt
 
